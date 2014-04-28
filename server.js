@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-var DNode = require('dnode');
+var dnode = require('dnode');
 var sys = require('sys');
+
+var port = process.argv[2];
 
 var server = DNode({
   moo : function (reply) { 
@@ -11,4 +13,4 @@ var server = DNode({
     reply(n+1); 
     server.close();
   }
-}).listen(6060);
+}).listen(parseInt(port));

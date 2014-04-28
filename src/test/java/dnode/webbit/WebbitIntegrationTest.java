@@ -4,14 +4,14 @@ import com.gargoylesoftware.htmlunit.AlertHandler;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+//import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import dnode.Callback;
 import dnode.DNode;
 import org.junit.Ignore;
 import org.junit.Test;
-import webbit.WebServer;
-import webbit.handler.EmbeddedResourceHandler;
-import webbit.netty.NettyWebServer;
+import org.webbitserver.WebServer;
+import org.webbitserver.handler.EmbeddedResourceHandler;
+import org.webbitserver.netty.NettyWebServer;
 
 import java.io.IOException;
 
@@ -28,9 +28,9 @@ public class WebbitIntegrationTest {
 
     @Test
     @Ignore
-    public void should_work_with_browser() throws IOException, InterruptedException {
+    public <T> void should_work_with_browser() throws IOException, InterruptedException {
         WebServer server = new NettyWebServer(6061);
-        new DNode(new Cat()).listen(new WebbitServer(server));
+        new DNode<T>(new Cat()).listen(new WebbitServer(server));
         server.add("/.*", new EmbeddedResourceHandler("dnode/js", newFixedThreadPool(4)));
         server.start();
 
@@ -41,7 +41,8 @@ public class WebbitIntegrationTest {
                 System.out.println("alert = " + message);
             }
         });
-        HtmlPage page = client.getPage("http://localhost:6061/");
+        //HtmlPage page = 
+        		client.getPage("http://localhost:6061/");
 
         sleep(5000);
         // Expected to see GROWL in stdout at least, but not happening...

@@ -2,9 +2,10 @@ package dnode;
 
 import dnode.netty.NettyServer;
 import junit.framework.AssertionFailedError;
-import org.junit.After;
+
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -12,83 +13,109 @@ import java.io.Reader;
 import static org.junit.Assert.assertEquals;
 
 public class DNodeTest {
-    private DNode dNode;
-    private final Server server = new NettyServer(6060);
-
+	private static int basePort = 6000;
+	
     public class Mooer {
-        private final int moo;
-        public DNode dNode;
+        public int moo;
 
         public Mooer(int moo) {
-            this.moo = moo;
+        	this.moo = moo;
         }
-
+        
+        public void setMoo(int moo) {
+        	this.moo = moo;
+        }
+        
         public void moo(Callback cb) throws IOException {
             cb.call(moo);
-            dNode.closeAllConnections();
-            server.shutdown();
         }
+        
+        private void stuff(int x) {}
 
         public void boo(Callback cb) throws IOException {
             cb.call(moo * 10);
-            dNode.closeAllConnections();
-            server.shutdown();
         }
-    }
-
-    @After
-    public void shutdownServer() throws IOException {
-        server.shutdown();
+        
+        public void too(Callback cb) throws IOException {        	
+        	cb.call(0);
+        }      
     }
 
     @Test
     public void shouldTalk() throws IOException, InterruptedException {
-        createDnode(100);
-        dNode.listen(server);
-        assertEquals("100\n", runClient("moo"));
+    	int port = basePort;
+    	String portStr = new Integer(port).toString();
+    			
+    	Server server = new NettyServer(port);
+        DNode<Object> dnode = createDnode(100);        
+        dnode.listen(server);
+        assertEquals("100\n", runScript("client.js", portStr, "moo")); // invoke moo on the remote mooer
+        dnode.closeAllConnections();
+        server.shutdown();
     }
 
     @Test
     public void shouldUseDataInInstance() throws IOException, InterruptedException {
-        createDnode(200);
-        dNode.listen(server);
-        assertEquals("200\n", runClient("moo"));
+    	int port = basePort+1;
+    	String portStr = new Integer(port).toString();
+    			    	
+    	Server server = new NettyServer(port);
+    	DNode<Object> dnode = createDnode(200);
+    	dnode.listen(server);
+        assertEquals("200\n", runScript("client.js", portStr, "moo")); // invoke moo on the remote mooer
+        dnode.closeAllConnections();
+        server.shutdown();
     }
 
     @Test
     public void shouldCallRightMethod() throws IOException, InterruptedException {
-        createDnode(300);
-        dNode.listen(server);
-        assertEquals("3000\n", runClient("boo"));
+    	int port = basePort+2;
+    	String portStr = new Integer(port).toString();
+    			    	
+    	Server server = new NettyServer(port);
+    	DNode<Object> dnode = createDnode(300);
+    	dnode.listen(server);
+        assertEquals("3000\n", runScript("client.js", portStr, "boo")); //invoke boo on the remote mooer
+        dnode.closeAllConnections();
+        server.shutdown();
     }
 
     public static interface SomeClient {
-        void hello();
-    }
+        void hello(int x);
+    }    
     
     @Test
-    public void shouldBeAbleToCallClient() {
-        Mooer mooer = new Mooer(345);
-        dNode = new DNode<SomeClient>(mooer, new ClientHandler<SomeClient>() {
+    public void shouldBeAbleToCallClient() throws IOException, InterruptedException {
+    	int port = basePort+3;
+    	String portStr = new Integer(port).toString();
+    			    	
+    	Server server = new NettyServer(port);
+    	DNode<SomeClient> dnode = this.<SomeClient>createDnode(345, SomeClient.class, new ClientHandler<SomeClient>() {
             @Override
             public void onConnect(SomeClient client) {
                 System.out.println("client = " + client);
-                client.hello();
+                client.hello(5);
             }
         });
+    	dnode.listen(server);
+        assertEquals("hello5\n3450\n345\n", runScript("client2.js", portStr, "")); //connect to remote mooer and let it invoke the client upon connection
+        dnode.closeAllConnections();
+        server.shutdown();
     }
 
-
-    private void createDnode(int moo) {
-        Mooer instance = new Mooer(moo);
-        dNode = new DNode(instance);
-        instance.dNode = dNode;
+    private DNode<Object> createDnode(int moo) {
+    	return this.<Object>createDnode(moo, null, null); // type T doesn't matter when there is no handler    
+    }
+    
+    private <T> DNode<T> createDnode(int moo, Class<T> type, ClientHandler<T> handler) {
+        return new DNode<T>(new Mooer(moo), type, handler);
     }
 
-    private String runClient(String method) throws IOException, InterruptedException {
-        String node = System.getProperty("node", "/usr/local/bin/node");
-        String clientScript = System.getProperty("client", "client.js");
-        ProcessBuilder pb = new ProcessBuilder(node, clientScript, method);
+    private String runScript(String script, String port, String method) throws IOException, InterruptedException {
+        String node = "C:\\Program Files\\nodejs\\node.exe"; //System.getProperty("node", "/usr/local/bin/node");
+        String clientScript = "C:\\node-dnodetest\\" + script; //System.getProperty("client", "client.js");
+        ProcessBuilder pb = new ProcessBuilder(node, clientScript, port, method);
+        pb.directory(new File("C:\\node-dnodetest")); // working directory
         pb.redirectErrorStream(true);
         Process client = pb.start();
 

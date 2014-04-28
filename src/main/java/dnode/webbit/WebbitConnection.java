@@ -2,7 +2,7 @@ package dnode.webbit;
 
 import com.google.gson.JsonElement;
 import dnode.Connection;
-import webbit.WebSocketConnection;
+import org.webbitserver.WebSocketConnection;
 
 public class WebbitConnection implements Connection {
     private final WebSocketConnection webSocketConnection;

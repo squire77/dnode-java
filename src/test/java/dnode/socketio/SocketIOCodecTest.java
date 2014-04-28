@@ -20,7 +20,7 @@ public class SocketIOCodecTest {
         assertEncoding(Arrays.asList("Hello", "World"));
     }
 
-    private void assertEncoding(List m) {
+    private void assertEncoding(List<?> m) {
         String encoded = codec.encode(m);
         assertEquals(m, codec.decode(encoded));
     }

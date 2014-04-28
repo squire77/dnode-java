@@ -1,7 +1,7 @@
 package dnode.socketio;
 
-import webbit.HttpRequest;
-import webbit.WebSocketConnection;
+import org.webbitserver.HttpRequest;
+import org.webbitserver.WebSocketConnection;
 
 import java.util.Map;
 import java.util.Set;
@@ -65,4 +65,34 @@ class SocketIOConnection implements WebSocketConnection {
     public void execute(Runnable runnable) {
         connection.execute(runnable);
     }
+
+	@Override
+	public WebSocketConnection ping(byte[] arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public WebSocketConnection pong(byte[] arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public WebSocketConnection send(byte[] arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public WebSocketConnection send(byte[] arg0, int arg1, int arg2) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String version() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

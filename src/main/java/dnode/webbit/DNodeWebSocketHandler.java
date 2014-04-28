@@ -1,18 +1,19 @@
 package dnode.webbit;
 
 import dnode.DNode;
-import webbit.WebSocketConnection;
-import webbit.WebSocketHandler;
+
+import org.webbitserver.WebSocketConnection;
+import org.webbitserver.WebSocketHandler;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class DNodeWebSocketHandler implements WebSocketHandler {
-    private final DNode dnode;
+    private final DNode<?> dnode;
 
     private final Map<WebSocketConnection, WebbitConnection> connections = new HashMap<WebSocketConnection, WebbitConnection>();
 
-    public DNodeWebSocketHandler(DNode dnode) {
+    public DNodeWebSocketHandler(DNode<?> dnode) {
         this.dnode = dnode;
     }
 
@@ -38,6 +39,25 @@ public class DNodeWebSocketHandler implements WebSocketHandler {
         }
         return wc;
     }
+
+	@Override
+	public void onMessage(WebSocketConnection arg0, byte[] arg1)
+			throws Throwable {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPing(WebSocketConnection arg0, byte[] arg1) throws Throwable {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPong(WebSocketConnection arg0, byte[] arg1) throws Throwable {
+		// TODO Auto-generated method stub
+		
+	}
 }
 
 

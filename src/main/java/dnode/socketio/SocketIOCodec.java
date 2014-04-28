@@ -13,7 +13,7 @@ public class SocketIOCodec {
         return encode(Collections.singletonList(message));
     }
 
-    public String encode(List messages) {
+    public String encode(List<?> messages) {
         StringBuilder sb = new StringBuilder();
         for (Object message : messages) {
             String m = stringify(message);

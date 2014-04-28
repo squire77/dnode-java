@@ -1,7 +1,7 @@
 package dnode.socketio;
 
-import webbit.WebSocketConnection;
-import webbit.WebSocketHandler;
+import org.webbitserver.WebSocketConnection;
+import org.webbitserver.WebSocketHandler;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +23,12 @@ public class SocketIOWebSocketHandler implements WebSocketHandler {
     public void onOpen(WebSocketConnection connection) throws Exception {
         SocketIOConnection socketIOConnection = new SocketIOConnection(connection, codec);
         socketIOConnections.put(connection, socketIOConnection);
-        handler.onOpen(socketIOConnection);
+        try {
+			handler.onOpen(socketIOConnection);
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     @Override
@@ -38,13 +43,42 @@ public class SocketIOWebSocketHandler implements WebSocketHandler {
                 // TODO: Should we parse into JSON here? We also seem to get JSON that is *not* prefixed with ~j~ (??)
                 message = message.substring(3);
             }
-            handler.onMessage(socketIOConnections.get(connection), message);
+            try {
+				handler.onMessage(socketIOConnections.get(connection), message);
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
     }
 
     @Override
     public void onClose(WebSocketConnection connection) throws Exception {
-        handler.onClose(socketIOConnections.remove(connection));
+        try {
+			handler.onClose(socketIOConnections.remove(connection));
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
+
+	@Override
+	public void onMessage(WebSocketConnection arg0, byte[] arg1)
+			throws Throwable {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPing(WebSocketConnection arg0, byte[] arg1) throws Throwable {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPong(WebSocketConnection arg0, byte[] arg1) throws Throwable {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

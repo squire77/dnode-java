@@ -1,6 +1,7 @@
 package dnode.netty;
 
 import dnode.DNode;
+
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder;
@@ -11,9 +12,9 @@ import org.jboss.netty.handler.codec.string.StringEncoder;
 import static org.jboss.netty.channel.Channels.pipeline;
 
 public class DNodePipelineFactory implements ChannelPipelineFactory {
-    private final DNode dnode;
+    private final DNode<?> dnode;
 
-    public DNodePipelineFactory(DNode dnode) {
+    public DNodePipelineFactory(DNode<?> dnode) {
         this.dnode = dnode;
     }
 

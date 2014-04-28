@@ -8,10 +8,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DNodeServerHandler extends SimpleChannelUpstreamHandler {
-    private final DNode dnode;
+    private final DNode<?> dnode;
     private Map<Channel, Connection> connections = new HashMap<Channel, Connection>();
 
-    public DNodeServerHandler(DNode dnode) {
+    public DNodeServerHandler(DNode<?> dnode) {
         this.dnode = dnode;
     }
 
@@ -26,5 +26,21 @@ public class DNodeServerHandler extends SimpleChannelUpstreamHandler {
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         String message = (String) e.getMessage();
         dnode.onMessage(connections.get(e.getChannel()), message);
+    }
+    
+    @Override
+    public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+    	if (connections.containsKey(e.getChannel())) {
+    		connections.remove(e.getChannel());
+    	}
+    }
+    
+    @Override
+    public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+    	e.getChannel().close();
+    	
+    	if (connections.containsKey(e.getChannel())) {
+    		connections.remove(e.getChannel());
+    	}
     }
 }

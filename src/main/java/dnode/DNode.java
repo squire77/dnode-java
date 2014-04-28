@@ -11,14 +11,16 @@ public class DNode<T> {
     private final List<Connection> connections = new ArrayList<Connection>();
     private final DNodeObject instance;
     private final ClientHandler<T> clientHandler;
+    private final Class<T> type;
 
     public DNode(Object instance) {
-        this(instance, null);
+        this(instance, null, null);
     }
 
-    public DNode(Object instance, ClientHandler<T> clientHandler) {
+    public DNode(Object instance, Class<T> type, ClientHandler<T> clientHandler) {
         this.instance = new DNodeObject(instance);
         this.clientHandler = clientHandler;
+        this.type = type;
     }
 
     public void listen(Server server) throws IOException {
@@ -27,8 +29,10 @@ public class DNode<T> {
 
     private JsonElement methods() {
         JsonArray arguments = new JsonArray();
-        arguments.add(instance.getSignature());
-        return response("methods", arguments, instance.getCallbacks(), new JsonArray());
+        arguments.add(instance.getSignatures());
+        JsonElement serverMethods = response("methods", arguments, instance.getCallbacks(), new JsonArray());
+        //System.out.println("server methods: " + serverMethods.toString());
+        return serverMethods;
     }
 
     private JsonElement response(String method, JsonArray arguments, JsonObject callbacks, JsonArray links) {
@@ -58,22 +62,38 @@ public class DNode<T> {
     }
 
     private T createClientProxy(final Connection connection) {
-        ParameterizedType type = (ParameterizedType) clientHandler.getClass().getGenericInterfaces()[0];
-        Class clientType = (Class) type.getActualTypeArguments()[0];
-        T clientProxy = (T) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{clientType}, new InvocationHandler() {
+    	// You cannot get a generic base type at run-time due to type erasure. So, the type is now passed
+    	// in directly on object construction.
+        //ParameterizedType type = (ParameterizedType) clientHandler.getClass().getGenericInterfaces()[0];
+        //Class<?> clientType = (Class<?>) type.getActualTypeArguments()[0];
+            	
+        Object proxy = Proxy.newProxyInstance(
+        		type.getClassLoader(), //clientType.getClassLoader(),        		 
+        		new Class<?>[]{type}, //clientType}, 
+        		new InvocationHandler() {
             @Override
             public Object invoke(Object target, Method method, Object[] args) throws Throwable {
+            	if (method.getName().equals("toString") && target != null) {
+            		return "object-ref:####";
+            	}
+            	
                 JsonArray arguments = transform(args);
                 JsonObject callbacks = new JsonObject();
                 JsonArray links = new JsonArray();
-                connection.write(response(method.getName(), arguments, callbacks, links));
+                
+                //currently limited to invoking client methods that do not have any callback parameters
+        		JsonElement invoker = response(method.getName(), arguments, callbacks, links);
+        		System.out.println("server invokes client function: " + invoker.toString());
+                connection.write(invoker);
                 return null;
             }
         });
-        return clientProxy;
+        
+        return (T) proxy; // this cast into type T on return is unchecked due to type erasure}
     }
 
     public void onMessage(Connection connection, String msg) {
+    	//System.out.println(msg);
         JsonObject json = new JsonParser().parse(msg).getAsJsonObject();
         JsonPrimitive method = json.getAsJsonPrimitive("method");
         if (method.isString() && method.getAsString().equals("methods")) {
@@ -85,9 +105,13 @@ public class DNode<T> {
 
     public JsonArray transform(Object[] args) {
         JsonArray result = new JsonArray();
-        for (Object arg : args) {
-            result.add(toJson(arg));
+        
+        if (args != null) {
+	        for (Object arg : args) {
+	            result.add(toJson(arg));
+	        }
         }
+        
         return result;
     }
 
@@ -106,6 +130,7 @@ public class DNode<T> {
     private void defineClientMethods(JsonObject methods) {
         // TODO: Verify that the client's reported methods have the same
         // signatures as our client proxy, and fail fast if it doesn't.
+    	//System.out.println(methods.toString());
     }
 
     public void closeAllConnections() {

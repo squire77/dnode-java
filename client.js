@@ -1,10 +1,16 @@
 #!/usr/bin/env node
-var DNode = require('dnode');
-var m = process.ARGV[2];
+const dnode = require('dnode');
 
-var client = DNode.connect(6060, function (remote) {
-  remote[m](function (x) {
+var port = process.argv[2];
+var methodName = process.argv[3];
+
+var d = new dnode();
+
+d.on('remote', function (remote) {
+  remote[methodName](function (x) {
     console.log(x);
+    d.end();
   });
 });
 
+d.connect(parseInt(port));

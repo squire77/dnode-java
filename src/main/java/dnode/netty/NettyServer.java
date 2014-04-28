@@ -20,7 +20,7 @@ public class NettyServer implements Server {
     }
 
     @Override
-    public void listen(DNode dnode) throws IOException {
+    public void listen(DNode<?> dnode) throws IOException {
         ChannelFactory factory = new NioServerSocketChannelFactory(
                 Executors.newCachedThreadPool(),
                 Executors.newCachedThreadPool());
