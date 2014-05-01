@@ -2,6 +2,7 @@ dnode-java
 ==========
 
 DNode protocol implementation in Java
+Forked to provided bug fixes and updates.
 
 DNode provides a remote invocation facility in Javascript whereby callbacks are passed as parameters.
 This allows a remote server to invoke your local methods and vice versa.
